@@ -19,10 +19,10 @@ labels = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle',
            'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor']
 
 
-path_image = "JPEGImages_Sample/"
-path_annot = "Annotations_Sample/"
+path_image = "JPEGImages_Sample"
+path_annot = "Annotations_Sample"
 
-train_size, test_size = 200, 100
+train_size, test_size = 900, 500
 print(train_size)
 img_width, img_height = 224, 224
 
@@ -54,22 +54,16 @@ batch_size = 32
 
 def extract_features(directory, sample_count):
     features = np.zeros(shape=(sample_count, 7, 7, 512))  # Must be equal to the output of the convolutional base
-    labels = np.zeros(shape=(sample_count))
+    labels = np.zeros(shape=(sample_count, 4))
     # Preprocess data
-    generator = datagen.flow_from_directory(directory,
-                                            target_size=(img_width, img_height),
-                                            batch_size=batch_size,
-                                            class_mode='binary')
+    generator = datagen.flow_from_directory(os.getcwd(), target_size=(img_width, img_height), batch_size=batch_size, class_mode='categorical')
     # Pass data through convolutional base
     i = 0
     for inputs_batch, labels_batch in generator:
-        print(generator)
-        print(inputs_batch)
         features_batch = conv_base.predict(inputs_batch)
-        print(features_batch)
         features[i * batch_size: (i + 1) * batch_size] = features_batch
         labels[i * batch_size: (i + 1) * batch_size] = labels_batch
-        print(labels)
+
         i += 1
         if i * batch_size >= sample_count:
             break
