@@ -13,10 +13,10 @@ from pprint import pprint
 from keras.applications import VGG16
 from tensorflow_core.contrib.slim.python.slim.nets import vgg
 
-labels = {'aeroplane':1, 'bicycle':2, 'bird':3, 'boat':4, 'bottle':5,
-           'bus':6, 'car':7, 'cat':8, 'chair':9, 'cow':10,
-           'diningtable':11, 'dog':12, 'horse':13, 'motorbike':14, 'person':15,
-           'pottedplant':16, 'sheep':17, 'sofa':18, 'train':19, 'tvmonitor':20}
+labels = {'aeroplane':0, 'bicycle':1, 'bird':2, 'boat':3, 'bottle':5,
+           'bus':5, 'car':6, 'cat':7, 'chair':8, 'cow':9,
+           'diningtable':10, 'dog':11, 'horse':12, 'motorbike':13, 'person':14,
+           'pottedplant':15, 'sheep':16, 'sofa':17, 'train':18, 'tvmonitor':19}
 
 
 path_image = "JPEGImages_Sample"
@@ -74,7 +74,22 @@ train_x = [os.path.join(base_dir, i) for i in os.listdir(base_dir + "/train")]
 valid_x = [os.path.join(base_dir, i) for i in os.listdir(base_dir + "/valid")]
 test_x = [os.path.join(base_dir, i) for i in os.listdir(base_dir + "/test")]
 
-#train_y = [int(labels[i]) for i in train_x]
+#train_y = [labels[i] for i in range(len(train_x))]
 #print(train_y)
 
-print(train_x[0])
+def label_extract(data_set):
+    mytype = data_set[0].split("/")[-1].split(".")[1]
+
+    if mytype == "jpg":
+        for i in range(len(data_set)):
+            num = data_set[i].split("/")[-1].split(".jpg")[0]
+            tree = Et.parse(train_x + "/annot/{}".format_map(num) + ".xml")
+            root = tree.getroot()
+
+            for member in root.findall('object'):
+                name = member.find('name').text
+
+
+
+
+print(train_x[0].split("/")[-1].split(".jpg")[0])
