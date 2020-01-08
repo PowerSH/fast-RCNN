@@ -70,8 +70,11 @@ def extract_features(directory, sample_count):
 
 # train_features, train_labels = extract_features(path_image, train_size)  # Agree with our small dataset size
 base_dir = os.getcwd()
-train_x = [os.path.join(base_dir, i) for i in os.listdir(base_dir + "train")]
-valid_x = [os.path.join(base_dir, i) for i in os.listdir(base_dir + "valid")]
-test_x = [os.path.join(base_dir, i) for i in os.listdir(base_dir + "test")]
+train_x = [os.path.join(base_dir, i) for i in os.listdir(base_dir + "/train")]
+valid_x = [os.path.join(base_dir, i) for i in os.listdir(base_dir + "/valid")]
+test_x = [os.path.join(base_dir, i) for i in os.listdir(base_dir + "/test")]
 
-train_y = [int(labels[i]) for i in train_x]
+#train_y = [int(labels[i]) for i in train_x]
+#print(train_y)
+
+print(train_x[0])
