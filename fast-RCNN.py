@@ -80,14 +80,14 @@ test_x = [os.path.join(base_dir, i) for i in os.listdir(base_dir + "/test")]
 def label_extract(data_set):
     mytype = data_set[0].split("/")[-1].split(".")[1]
 
-    if mytype == "jpg":
+    if mytype == "jpg":     # jpg타입 파일만 받습니다.
         for i in range(len(data_set)):
-            num = data_set[i].split("/")[-1].split(".jpg")[0]
-            tree = Et.parse(train_x + "/annot/{}".format_map(num) + ".xml")
+            num = data_set[i].split("/")[-1].split(".jpg")[0]   # 숫자만 추출합니다.
+            tree = Et.parse(train_x + "/annot/{}".format_map(num) + ".xml") # xml 파일을 파싱해옵니다.
             root = tree.getroot()
 
             for member in root.findall('object'):
-                name = member.find('name').text
+                name = member.find('name').text # 네이밍 단계
 
 
 
