@@ -70,26 +70,38 @@ def extract_features(directory, sample_count):
 
 # train_features, train_labels = extract_features(path_image, train_size)  # Agree with our small dataset size
 base_dir = os.getcwd()
-train_x = [os.path.join(base_dir, i) for i in os.listdir(base_dir + "/train")]
-valid_x = [os.path.join(base_dir, i) for i in os.listdir(base_dir + "/valid")]
-test_x = [os.path.join(base_dir, i) for i in os.listdir(base_dir + "/test")]
+train_dir = base_dir + "\\train"
+valid_dir = base_dir + "\\valid"
+test_dir  = base_dir + "\\test"
+train_x = [os.path.join(train_dir, i) for i in os.listdir(train_dir)]
+valid_x = [os.path.join(valid_dir, i) for i in os.listdir(valid_dir)]
+test_x = [os.path.join(test_dir, i) for i in os.listdir(test_dir)]
 
 #train_y = [labels[i] for i in range(len(train_x))]
 #print(train_y)
 
+print(train_x[0])
+
 def label_extract(data_set):
+    label_final = []
     mytype = data_set[0].split("/")[-1].split(".")[1]
 
     if mytype == "jpg":     # jpg타입 파일만 받습니다.
         for i in range(len(data_set)):
-            num = data_set[i].split("/")[-1].split(".jpg")[0]   # 숫자만 추출합니다.
-            tree = Et.parse(train_x + "/annot/{}".format_map(num) + ".xml") # xml 파일을 파싱해옵니다.
-            root = tree.getroot()
+            try: # 특정 문자열 뒤에는 삭제하는 함수를 넣어서 더 깔끔하게 만듭시다.
+                num = data_set[i].split("\\")[-1].split(".jpg")[0]   # 파일 넘버링만 추출합니다.
+                tree = Et.parse(train_x[i][:-10] + "annot\\" + num + ".xml") # xml 파일을 파싱해옵니다.
+                root = tree.getroot()
 
-            for member in root.findall('object'):
-                name = member.find('name').text # 네이밍 단계
+                for member in root.findall('object'):
+                    name = member.find('name').text # 네이밍 단계
+                    label_temp = labels[name]
+                label_final.append(label_temp)
+            except Exception as e:
+                print(e)
+                continue
+    return label_final
 
+print(label_extract(train_x))
 
-
-
-print(train_x[0].split("/")[-1].split(".jpg")[0])
+# print(train_x[0].split("/")[-1].split(".jpg")[0])
