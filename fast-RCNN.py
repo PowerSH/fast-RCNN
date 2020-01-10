@@ -8,12 +8,13 @@ import matplotlib.pyplot as plt
 import xml.etree.ElementTree as Et
 
 from PIL import Image
+from keras.utils import np_utils
 from keras.preprocessing import image
 from pprint import pprint
 from keras.applications import VGG16
 from tensorflow_core.contrib.slim.python.slim.nets import vgg
 
-labels = {'aeroplane':0, 'bicycle':1, 'bird':2, 'boat':3, 'bottle':5,
+labels = {'aeroplane':0, 'bicycle':1, 'bird':2, 'boat':3, 'bottle':4,
            'bus':5, 'car':6, 'cat':7, 'chair':8, 'cow':9,
            'diningtable':10, 'dog':11, 'horse':12, 'motorbike':13, 'person':14,
            'pottedplant':15, 'sheep':16, 'sofa':17, 'train':18, 'tvmonitor':19}
@@ -24,6 +25,8 @@ path_annot = "Annotations_Sample"
 
 train_size, test_size = 500, 250
 img_width, img_height = 224, 224
+
+num_classes = 20
 
 
 def show_pictures(path):
@@ -77,11 +80,6 @@ train_x = [os.path.join(train_dir, i) for i in os.listdir(train_dir)]
 valid_x = [os.path.join(valid_dir, i) for i in os.listdir(valid_dir)]
 test_x = [os.path.join(test_dir, i) for i in os.listdir(test_dir)]
 
-#train_y = [labels[i] for i in range(len(train_x))]
-#print(train_y)
-
-print(train_x[0])
-
 def label_extract(data_set):
     label_final = []
     mytype = data_set[0].split("/")[-1].split(".")[1]
@@ -90,18 +88,42 @@ def label_extract(data_set):
         for i in range(len(data_set)):
             try: # 특정 문자열 뒤에는 삭제하는 함수를 넣어서 더 깔끔하게 만듭시다.
                 num = data_set[i].split("\\")[-1].split(".jpg")[0]   # 파일 넘버링만 추출합니다.
-                tree = Et.parse(train_x[i][:-10] + "annot\\" + num + ".xml") # xml 파일을 파싱해옵니다.
-                root = tree.getroot()
+                if data_set[0].split("\\")[-2] == "train":
+                    tree = Et.parse(train_x[i][:-10] + "annot\\" + num + ".xml") # xml 파일을 파싱해옵니다.
+                    root = tree.getroot()
+                if data_set[0].split("\\")[-2] == "valid":
+                    tree = Et.parse(valid_x[i][:-10] + "annot\\" + num + ".xml")  # xml 파일을 파싱해옵니다.
+                    root = tree.getroot()
+                if data_set[0].split("\\")[-2] == "test":
+                    tree = Et.parse(test_x[i][:-10] + "annot\\" + num + ".xml") # xml 파일을 파싱해옵니다.
+                    root = tree.getroot()
 
                 for member in root.findall('object'):
                     name = member.find('name').text # 네이밍 단계
                     label_temp = labels[name]
                 label_final.append(label_temp)
             except Exception as e:
-                print(e)
+                # print(e)
                 continue
     return label_final
 
-print(label_extract(train_x))
+train_y = label_extract(train_x)
+valid_y = label_extract(valid_x)
+test_y = label_extract(test_x)
 
-# print(train_x[0].split("/")[-1].split(".jpg")[0])
+print(train_y)
+
+y_train = np_utils.to_categorical(train_y, num_classes)
+print(y_train[:10])
+
+print("Training data available in 20 classes (Total : {}".format(len(train_y)))
+print([train_y.count(i) for i in range(0, 20)])
+print("\n")
+
+print("Training data available in 20 classes (Total : {}".format(len(valid_y)))
+print([valid_y.count(i) for i in range(0, 20)])
+print("\n")
+
+print("Training data available in 20 classes (Total : {}".format(len(test_y)))
+print([test_y.count(i) for i in range(0, 20)])
+print("\n")
