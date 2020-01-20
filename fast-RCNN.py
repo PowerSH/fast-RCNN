@@ -1,129 +1,27 @@
-import random
-import os
-import sys
-import cv2
 import tensorflow as tf
-import numpy as np
-import matplotlib.pyplot as plt
-import xml.etree.ElementTree as Et
+import data_prepare
 
-from PIL import Image
-from keras.utils import np_utils
-from keras.preprocessing import image
-from pprint import pprint
+from keras import models, layers
 from keras.applications import VGG16
-from tensorflow_core.contrib.slim.python.slim.nets import vgg
-
-labels = {'aeroplane':0, 'bicycle':1, 'bird':2, 'boat':3, 'bottle':4,
-           'bus':5, 'car':6, 'cat':7, 'chair':8, 'cow':9,
-           'diningtable':10, 'dog':11, 'horse':12, 'motorbike':13, 'person':14,
-           'pottedplant':15, 'sheep':16, 'sofa':17, 'train':18, 'tvmonitor':19}
-
-
-path_image = "JPEGImages_Sample"
-path_annot = "Annotations_Sample"
-
-train_size, test_size = 500, 250
-img_width, img_height = 224, 224
-
-num_classes = 20
-
-
-def show_pictures(path):
-    random_img = random.choice(os.listdir(path))
-    img_path = os.path.join(path, random_img)
-
-    img = image.load_img(img_path, target_size=(img_width, img_height))
-    img_tensor = image.img_to_array(img)  # Image data encoded as integers in the 0–255 range
-    img_tensor /= 255.  # Normalize to [0,1] for plt.imshow application
-    plt.imshow(img_tensor)
-    plt.show()
-
-'''
-for i in range(0, 2):
-    show_pictures(path_image)
-    show_pictures(path_image)
-'''
-
-conv_base = VGG16(weights='imagenet', include_top=False, input_shape=(img_width, img_height, 3))
-conv_base.summary()
-
-import os, shutil
 from keras.preprocessing.image import ImageDataGenerator
+from keras import Input
 
-datagen = ImageDataGenerator(rescale=1./255)
-batch_size = 32
+train_dir = data_prepare.train_dir
+test_dir = data_prepare.test_dir
+valid_dir = data_prepare.valid_dir
 
-def extract_features(directory, sample_count):
-    features = np.zeros(shape=(sample_count, 7, 7, 512))  # Must be equal to the output of the convolutional base
-    labels = np.zeros(shape=(sample_count, None))
-    # Preprocess data
-    generator = datagen.flow_from_directory(os.getcwd(), target_size=(img_width, img_height), batch_size=batch_size, class_mode='categorical')
-    # Pass data through convolutional base
-    i = 0
-    for inputs_batch, labels_batch in generator:
-        features_batch = conv_base.predict(inputs_batch)
-        features[i * batch_size: (i + 1) * batch_size] = features_batch
-        labels[i * batch_size: (i + 1) * batch_size] = labels_batch
+train_datagen = ImageDataGenerator(rescale=1./255)
+valid_datagen = ImageDataGenerator(rescale=1./255)
+test_datagen = ImageDataGenerator(rescale=1./255)
 
-        i += 1
-        if i * batch_size >= sample_count:
-            break
-    return features, labels
+train_generator = train_datagen.flow_from_directory(train_dir, batch_size=16, target_size=(224, 224))
+valid_generator = valid_datagen.flow_from_directory(valid_dir, batch_size=16, target_size=(224, 224))
 
-# train_features, train_labels = extract_features(path_image, train_size)  # Agree with our small dataset size
-base_dir = os.getcwd()
-train_dir = base_dir + "\\train"
-valid_dir = base_dir + "\\valid"
-test_dir  = base_dir + "\\test"
-train_x = [os.path.join(train_dir, i) for i in os.listdir(train_dir)]
-valid_x = [os.path.join(valid_dir, i) for i in os.listdir(valid_dir)]
-test_x = [os.path.join(test_dir, i) for i in os.listdir(test_dir)]
+input_tensor = Input(shape=(224,224,3), dtype='float32', name='input')
 
-def label_extract(data_set):
-    label_final = []
-    mytype = data_set[0].split("/")[-1].split(".")[1]
+pre_trained_vgg = VGG16(weights='imagenet', include_top=True, input_shape=(224,224,3))
+pre_trained_vgg.summary()
 
-    if mytype == "jpg":     # jpg타입 파일만 받습니다.
-        for i in range(len(data_set)):
-            try: # 특정 문자열 뒤에는 삭제하는 함수를 넣어서 더 깔끔하게 만듭시다.
-                num = data_set[i].split("\\")[-1].split(".jpg")[0]   # 파일 넘버링만 추출합니다.
-                if data_set[0].split("\\")[-2] == "train":
-                    tree = Et.parse(train_x[i][:-10] + "annot\\" + num + ".xml") # xml 파일을 파싱해옵니다.
-                    root = tree.getroot()
-                if data_set[0].split("\\")[-2] == "valid":
-                    tree = Et.parse(valid_x[i][:-10] + "annot\\" + num + ".xml")  # xml 파일을 파싱해옵니다.
-                    root = tree.getroot()
-                if data_set[0].split("\\")[-2] == "test":
-                    tree = Et.parse(test_x[i][:-10] + "annot\\" + num + ".xml") # xml 파일을 파싱해옵니다.
-                    root = tree.getroot()
-
-                for member in root.findall('object'):
-                    name = member.find('name').text # 네이밍 단계
-                    label_temp = labels[name]
-                label_final.append(label_temp)
-            except Exception as e:
-                # print(e)
-                continue
-    return label_final
-
-train_y = label_extract(train_x)
-valid_y = label_extract(valid_x)
-test_y = label_extract(test_x)
-
-print(train_y)
-
-y_train = np_utils.to_categorical(train_y, num_classes)
-print(y_train[:10])
-
-print("Training data available in 20 classes (Total : {}".format(len(train_y)))
-print([train_y.count(i) for i in range(0, 20)])
-print("\n")
-
-print("Training data available in 20 classes (Total : {}".format(len(valid_y)))
-print([valid_y.count(i) for i in range(0, 20)])
-print("\n")
-
-print("Training data available in 20 classes (Total : {}".format(len(test_y)))
-print([test_y.count(i) for i in range(0, 20)])
-print("\n")
+#additional_model = models.Sequential()
+#additional_model.add(pre_trained_vgg)
+#additional_model.add(layers.Flatten())

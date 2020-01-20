@@ -17,6 +17,15 @@ if not os.path.exists(test_dir):
 if not os.path.exists(valid_dir):
     os.mkdir(valid_dir)
 
+if not os.path.exists(train_dir + '/image'):
+    os.mkdir(train_dir + '/image')
+
+if not os.path.exists(test_dir + '/image'):
+    os.mkdir(test_dir + '/image')
+
+if not os.path.exists(valid_dir + '/image'):
+    os.mkdir(valid_dir + '/image')
+
 if not os.path.exists(train_dir + '/annot'):
     os.mkdir(train_dir + '/annot')
 
@@ -34,19 +43,19 @@ for i, e in enumerate(os.listdir(base_annot_dir)):
 img_name = ['{}.jpg'.format(numbering[i][0]) for i in range(500)]
 for im in img_name:
     src = os.path.join(base_img_dir, im)
-    dst = os.path.join(train_dir, im)
+    dst = os.path.join(train_dir + '/image', im)
     shutil.copyfile(src, dst)
 
 img_name = ['{}.jpg'.format(numbering[i][0]) for i in range(500, 750)]
 for im in img_name:
     src = os.path.join(base_img_dir, im)
-    dst = os.path.join(valid_dir, im)
+    dst = os.path.join(valid_dir + '/image', im)
     shutil.copyfile(src, dst)
 
 img_name = ['{}.jpg'.format(numbering[i][0]) for i in range(750, 1000)]
 for im in img_name:
     src = os.path.join(base_img_dir, im)
-    dst = os.path.join(test_dir, im)
+    dst = os.path.join(test_dir + '/image', im)
     shutil.copyfile(src, dst)
 
 annot_name = ['{}.xml'.format(numbering[i][0]) for i in range(500)]
