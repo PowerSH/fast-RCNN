@@ -1,11 +1,17 @@
-import tensorflow.compat.v1 as tf
 import data_prepare
+import myselectivesearch
+import preparing
+
+import os
+import tensorflow.compat.v1 as tf
 import ROI_pooling
 import numpy as np
+import cv2
+import xml.etree.ElementTree as Et
+import pandas as pd
 
 from keras import models, layers
 from keras.applications import VGG16
-from keras.preprocessing.image import ImageDataGenerator
 from keras import Input
 
 # associate compat.v1
@@ -15,18 +21,19 @@ train_dir = data_prepare.train_dir
 test_dir = data_prepare.test_dir
 valid_dir = data_prepare.valid_dir
 
-train_datagen = ImageDataGenerator(rescale=1./255)
-valid_datagen = ImageDataGenerator(rescale=1./255)
-test_datagen = ImageDataGenerator(rescale=1./255)
+train_image_dir = data_prepare.train_image_dir
+test_image_dir = data_prepare.test_image_dir
+valid_image_dir = data_prepare.valid_image_dir
 
-train_generator = train_datagen.flow_from_directory(train_dir, batch_size=16, target_size=(224, 224))
-valid_generator = valid_datagen.flow_from_directory(valid_dir, batch_size=16, target_size=(224, 224))
+train_annot_dir = data_prepare.train_annot_dir
+test_annot_dir = data_prepare.test_annot_dir
+valid_annot_dir = data_prepare.valid_annot_dir
 
 input_tensor = Input(shape=(224,224,3), dtype='float32', name='input')
 
 pre_trained_vgg = VGG16(weights='imagenet', include_top=False, input_shape=(224,224,3))
 #pre_trained_vgg.summary()
-
+'''
 # ROI part -start
 batch_size = 1
 img_height = 224
@@ -59,13 +66,34 @@ print(f"result.shape = {result.shape}")
 print(f"first  roi embedding=\n{result[0, 0, :, :, 0]}")
 print(f"second roi embedding=\n{result[0, 1, :, :, 0]}")
 # ROI Part -end
+'''
+X = []
+Y = []
+
+X = preparing.dataprepare(train_image_dir)
+Y = preparing.labeling(train_annot_dir)
+
+X = np.array(X)
+Y = np.array(Y)
+
+print(X.shape)
+print(Y.shape)
+
+#print(preparing.labels.keys())
+#temp = pd.DataFrame(Y, columns=preparing.labels.keys())
+#print(temp)
 
 
 additional_model = models.Sequential()
 additional_model.add(pre_trained_vgg)
 additional_model.add(layers.Flatten())
+
 additional_model.add(layers.Dense(4096, activation='relu', name='fc1'))
 additional_model.add(layers.Dense(2048, activation='relu', name='fc2'))
 additional_model.add(layers.Dense(20, activation='softmax', name='classifier'))
-additional_model.summary()
+
+additional_model.compile(optimizer='adam', loss='mean_squared_error')
+
+hist = additional_model.fit(X, batch_size=128, epochs=5)
+
 print("additional_model done")

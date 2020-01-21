@@ -4,9 +4,18 @@ import shutil
 base_dir = os.getcwd()
 base_img_dir = os.path.join(base_dir, "JPEGImages_Sample")
 base_annot_dir = os.path.join(base_dir, "Annotations_Sample")
+
 train_dir = os.path.join(base_dir, "train")
 test_dir = os.path.join(base_dir, "test")
 valid_dir = os.path.join(base_dir, "valid")
+
+train_image_dir = train_dir + '\\image'
+test_image_dir = test_dir + '\\image'
+valid_image_dir = valid_dir + '\\image'
+
+train_annot_dir = train_dir + '\\annot'
+test_annot_dir = test_dir + '\\annot'
+valid_annot_dir = valid_dir + '\\annot'
 
 if not os.path.exists(train_dir):
     os.mkdir(train_dir)
