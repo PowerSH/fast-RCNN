@@ -110,7 +110,7 @@ additional_model.summary()
 
 additional_model.compile(optimizer='adam', loss= keras.losses.categorical_crossentropy, metrics=["accuracy"])
 
-# 일단은 돌아가게는 만들었으나 정확도는 거의 없다시피하다 Y에는 이름만 들어가있는 상태이며, 현재는 돌아가긴 하는 상황이니 ROI_Pooling 계층에 대해서 알아봐야겠다.
+# 일단은 돌아가게는 만들었으나 정확도는 거의 없다시피하다 Y에는 이름만 들어가있는 상태이며, 현재는 돌아가긴 하는 상황이니 ROI_Pooling 계층에 대해서 알아봐야겠다
 # hist = additional_model.fit(X, Y, batch_size=16, epochs=5)
 
 print("additional_model done")
