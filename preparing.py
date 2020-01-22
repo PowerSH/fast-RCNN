@@ -20,7 +20,15 @@ def labeling(dir):
         temp = []
         for member in root.findall('object'):
             name = member.find('name').text
+            x1 = member.find('bndbox/xmin').text
+            y1 = member.find('bndbox/ymin').text
+            x2 = member.find('bndbox/xmax').text
+            y2 = member.find('bndbox/ymax').text
             temp.append(labels[name])
+            #temp.append(int(x1))
+            #temp.append(int(x2))
+            #temp.append(int(y1))
+            #temp.append(int(y2))
 
         lbl.append(temp)
     return lbl
